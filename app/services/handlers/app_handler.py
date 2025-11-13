@@ -40,12 +40,15 @@ class AppHandler(BaseResponseHandler):
             # Get initial classification
             initial_classification = classification_data.get("classification", "app_related")
 
+            # Get phone_number from classification_data (use as user_id for app classifier)
+            phone_number = classification_data.get("phone_number", "unknown")
+
             # Route through app_related_classifier_main for proper sub-classification
             # This will automatically route to:
             # - screen_data_related -> app_screen_related_main (GPT-based FAQ)
             # - app_data_related -> content templates
             # - subscription_data_related -> subscription message
-            result = await app_related_classifier_main(json_data, "user_id", initial_classification)
+            result = await app_related_classifier_main(json_data, phone_number, initial_classification)
 
             # Wrap the result in the expected handler response format
             response = {

@@ -44,13 +44,15 @@ class LanguageType(str, Enum):
 class ClassificationRequest(BaseModel):
     """Request model for classification endpoint."""
     message: str = Field(..., description="User query to classify", min_length=1)
+    phone_number: str = Field(..., description="User's phone number for conversation history", min_length=10)
     metadata: Optional[Dict[str, Any]] = Field(default=None, description="Optional metadata")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "message": "What is Newton's first law?",
-                "metadata": {"user_id": "user123"}
+                "phone_number": "+919876543210",
+                "metadata": {}
             }
         }
 

@@ -117,7 +117,15 @@ class ClassificationPipeline:
                     }
 
                     response_data = await handler.handle(query_to_classify, classification_data)
-                    logger.info(f"[Pipeline] Handler response: {response_data.get('status')}")
+                    logger.info(f"[Pipeline] Handler response status: {response_data.get('status')}")
+                    logger.info(f"[Pipeline] ========== HANDLER RESPONSE STRUCTURE ==========")
+                    logger.info(f"[Pipeline] Keys in response_data: {list(response_data.keys())}")
+                    logger.info(f"[Pipeline] Status: {response_data.get('status')}")
+                    logger.info(f"[Pipeline] Message: {response_data.get('message')}")
+                    if response_data.get('data'):
+                        logger.info(f"[Pipeline] Data keys: {list(response_data['data'].keys()) if isinstance(response_data['data'], dict) else 'Not a dict'}")
+                        logger.info(f"[Pipeline] Data content preview: {str(response_data['data'])[:200]}...")
+                    logger.info(f"[Pipeline] ==================================================")
                 except Exception as e:
                     logger.error(f"[Pipeline] Handler execution failed: {e}")
                     response_data = {
@@ -143,7 +151,16 @@ class ClassificationPipeline:
                 processing_time_ms=processing_time
             )
 
-            logger.info(f"[Pipeline] Classification completed in {processing_time:.2f}ms")
+            logger.info(f"[Pipeline] ========== FINAL CLASSIFICATIONRESPONSE ==========")
+            logger.info(f"[Pipeline] Classification: {response.classification}")
+            logger.info(f"[Pipeline] Sub-classification: {response.sub_classification}")
+            logger.info(f"[Pipeline] Subject: {response.subject}")
+            logger.info(f"[Pipeline] Language: {response.language}")
+            logger.info(f"[Pipeline] Response_data status: {response.response_data.get('status') if response.response_data else None}")
+            logger.info(f"[Pipeline] Response_data keys: {list(response.response_data.keys()) if response.response_data else None}")
+            logger.info(f"[Pipeline] Processing time: {processing_time:.2f}ms")
+            logger.info(f"[Pipeline] =====================================================")
+
             return response
 
         except Exception as e:

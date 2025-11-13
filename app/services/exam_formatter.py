@@ -136,7 +136,7 @@ Please format these questions into an engaging WhatsApp message."""
 
         # Call GPT
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -314,7 +314,7 @@ Generate the COMPLETE WhatsApp message including:
 
         # Call GPT to generate the complete message
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -537,6 +537,20 @@ async def format_exam_response(exam_response: Dict[str, Any], language: str = "h
                 exam_response["has_formatted_response"] = True
 
                 logger.warning("[ExamFormatter] No resources found in exam API response for pyq_pdf, using fallback")
+
+        elif classified_as == "app_data_related" and query_type:
+            # Handle app_data_related with query_type (test_full_length, test_chapterwise, etc.)
+            from app.services.content_responses import get_content_response
+
+            logger.info(f"[ExamFormatter] Processing app_data_related with query_type: {query_type}")
+
+            # Map query_type to content_type
+            content_response = get_content_response(query_type, language)
+
+            exam_response["formatted_response"] = content_response
+            exam_response["has_formatted_response"] = True
+
+            logger.info(f"[ExamFormatter] Content response provided for query_type: {query_type}")
 
         elif is_empty_response or open_whatsapp:
             # Provide fallback message for empty responses

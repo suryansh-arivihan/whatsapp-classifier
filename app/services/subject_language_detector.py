@@ -22,7 +22,7 @@ class SubjectLanguageDetector:
 
     def detect(self, query: str) -> Dict[str, Optional[str]]:
         """
-        Detect subject and language from the query.
+        Detect subject and language from the query using structured output.
 
         Args:
             query: User query text
@@ -37,23 +37,69 @@ class SubjectLanguageDetector:
         try:
             logger.info(f"Detecting subject and language for query: {query[:100]}...")
 
-            prompt = self._build_detection_prompt(query)
-
             response = self.client.chat.completions.create(
-                model=settings.openai_model,
+                model="gpt-4.1-mini",
                 messages=[
-                    {"role": "system", "content": "You are an expert at detecting academic subjects and languages in educational queries."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": """You are a subject and language classifier for educational queries.
+
+Subject: Classify into Physics, Chemistry, Mathematics, or Biology.
+
+Language Rules:
+- "English": Pure English OR casual Hinglish with common English words mixed (like "force kya h", "important questions dedo", "toppersnotes dedo", "chapter one ke lecture chahiye")
+- "Hindi":
+  * Hindi written in Devanagari script (like "बल क्या है", "इम्पोर्टेन्ट क़ुएस्तिओन्स")
+  * Hindi technical/academic terms written in Roman script (like "viduyt avesh ke lecture", "vishuyt dhara", "gatisheel dhara")
+
+Key Distinction:
+- If query uses English words mixed with Hindi → English (Hinglish)
+- If query uses pure Hindi words (even in Roman script) or Devanagari → Hindi
+
+Examples:
+- "what is force" → English
+- "force kya h" → English (Hinglish - English word "force")
+- "important questions dedo" → English (Hinglish - English words)
+- "toppersnotes dedo" → English (Hinglish - English word "toppersnotes")
+- "chapter one ke lecture chahiye" → English (Hinglish - English words)
+- "viduyt avesh ke lecture milege kya" → Hindi (pure Hindi terms in Roman)
+- "vishuyt dhara ke lecture milege kya" → Hindi (pure Hindi terms in Roman)
+- "बल क्या है" → Hindi (Devanagari)
+- "इम्पोर्टेन्ट क़ुएस्तिओन्स छाहिये" → Hindi (Devanagari)
+"""
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Classify this question: {query}"
+                    }
                 ],
-                temperature=settings.openai_temperature,
-                max_tokens=200
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "classification",
+                        "strict": True,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "subject": {
+                                    "type": "string",
+                                    "enum": ["Physics", "Chemistry", "Mathematics", "Biology", "null"]
+                                },
+                                "language": {
+                                    "type": "string",
+                                    "enum": ["English", "Hindi"]
+                                }
+                            },
+                            "required": ["subject", "language"],
+                            "additionalProperties": False
+                        }
+                    }
+                },
+                temperature=0
             )
 
-            result_text = response.choices[0].message.content.strip()
-            logger.info(f"Detection result: {result_text}")
-
-            # Parse the JSON response
-            result = json.loads(result_text)
+            result = json.loads(response.choices[0].message.content)
+            logger.info(f"Detection result: {result}")
 
             # Validate and normalize
             subject = self._normalize_subject(result.get("subject"))
@@ -77,14 +123,14 @@ class SubjectLanguageDetector:
         """Build the prompt for subject and language detection."""
         return f"""Analyze the following query and detect:
 1. The academic subject (if applicable): Physics, Chemistry, Mathematics, Biology, or null if not academic
-2. The language: English, Hindi, or Hinglish (mix of Hindi and English)
+2. The language: English, Hindi, or english (mix of Hindi and English)
 
 Query: "{query}"
 
 Respond ONLY with a JSON object in this exact format:
 {{
     "subject": "Physics|Chemistry|Mathematics|Biology|null",
-    "language": "English|Hindi|Hinglish"
+    "language": "English|Hindi|english"
 }}
 
 Guidelines:
@@ -92,7 +138,7 @@ Guidelines:
 - For language detection:
   * English: Pure English text
   * Hindi: Pure Hindi/Devanagari script
-  * Hinglish: Mix of Hindi and English, or Hindi written in Roman script
+  * english: Mix of Hindi and English, or Hindi written in Roman script
 - Be precise and return ONLY the JSON object, no additional text"""
 
     def _normalize_subject(self, subject: Optional[str]) -> Optional[str]:

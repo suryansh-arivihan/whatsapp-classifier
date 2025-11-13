@@ -3378,7 +3378,7 @@ Translate to clear, grammatically correct English:"""
             prompt = self.create_translation_prompt(hinglish_text, stream=stream)
 
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",   # fast & cheap for translation
+                model="gpt-4.1-mini",   # fast & cheap for translation
                 messages=[
                     {"role": "system", "content": "You are a specialized academic translator for Hinglish to English translation with expertise in Science and Math terminology."},
                     {"role": "user", "content": prompt}

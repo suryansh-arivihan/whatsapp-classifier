@@ -6,41 +6,148 @@ import time
 import re
 from typing import Dict, Any, Optional
 import httpx
+from openai import OpenAI
 from app.core.logging_config import logger
 from app.core.config import settings
 
 
-def html_to_simple_text_with_personal_touch(html_content: str, language: str = "Hindi") -> str:
+def html_to_simple_text_with_personal_touch(html_content, student_name="beta", language="english"):
     """
-    Convert HTML content to personalized plain text.
+    Convert HTML content to simple plain text with a personal, caring teacher tone.
+    Adds introduction and closing with subtle Arivihan promotion.
 
     Args:
-        html_content: HTML formatted content
-        language: Language for personalization
+        html_content (str): HTML content to convert
+        student_name (str): Name to address the student (default: "beta")
+        language (str): Response language - "hinglish" or "hindi" (default: "hinglish")
 
     Returns:
-        Personalized plain text
+        str: Plain text version with personal touch
     """
+
+    # Language-specific instructions
+    if language.lower() == "hindi":
+        lang_instruction = """
+*LANGUAGE: Pure Hindi (Devanagari script only)*
+- Use ONLY Hindi Devanagari script throughout
+- No English words mixed in
+- Complete Hindi language response
+"""
+        opening_instruction = """
+*OPENING (warm and encouraging):*
+- Select opening according to your logic and sense - make it natural and contextual
+- Use caring, teacher-like tone in Hindi
+- Address student as "बेटा" or similar affectionate terms
+- Encourage the student for asking questions
+- Examples (choose or create similar):
+  * "बेटा, ये रहा आपके डाउट का जवाब!"
+  * "डाउट पूछना बहुत अच्छी बात है बेटा"
+  * "चलिए मैं आपको अच्छे से समझाता हूं"
+  * "बहुत बढ़िया सवाल पूछा आपने बेटा"
+"""
+        closing_instruction = """
+*CLOSING (subtle call-to-action):*
+- Select closing according to your logic and sense - make it natural
+- Keep it helpful, not pushy
+- Mention Arivihan subtly
+- Examples (choose or create similar):
+  * "अगर आपको और कोई डाउट है तो पूछ सकते हैं बेटा"
+  * "या फिर आप महत्वपूर्ण प्रश्न और टॉपर्स के नोट्स के लिए अरिविहान पर जाएं"
+  * "हम हमेशा आपकी मदद के लिए तैयार हैं"
+"""
+    else:  # hinglish
+        lang_instruction = """
+*LANGUAGE: Hinglish - WhatsApp Message Style (Roman Script)*
+- Write Hindi words in ROMAN/ENGLISH script (e.g., "Force kya hai", "bahut aasan hai")
+- Natural conversational mix like texting/WhatsApp
+- Think: "Force kya h - iski definition bahut aasan h"
+- Use short forms: "h" for "hai", "kr" for "kar", "aap" for "आप"
+- Mix Hindi-English naturally like students chat
+- Keep it casual, friendly, and easy to read
+"""
+        opening_instruction = """
+*OPENING (warm and encouraging):*
+- Select opening according to your logic and sense - make it natural and contextual
+- Use caring, teacher-like tone in Hinglish
+- Address student as "beta" or similar affectionate terms
+- Encourage the student for asking questions
+- Examples (choose or create similar):
+  * "Beta, ye raha aapke doubt ka answer!"
+  * "Doubt puchna bahut acchi baat hai beta"
+  * "Chalo main aapko acche se samjhata hun"
+  * "Bahut badhiya question pucha aapne beta"
+"""
+        closing_instruction = """
+*CLOSING (subtle call-to-action):*
+- Select closing according to your logic and sense - make it natural
+- Keep it helpful, not pushy
+- Mention Arivihan subtly
+- Examples (choose or create similar):
+  * "Agar aapko aur koi doubt hai to puch sakte ho beta"
+  * "Ya fir important questions aur toppers ke notes ke liye Arivihan par jao"
+  * "Hum hamesha aapki help ke liye ready hain"
+"""
+
+    prompt = f"""You are Ritesh Sir, a caring and experienced teacher who is CEO of Arivihan - an edtech platform helping 12th MP Board students prepare for board exams. You're answering a student's doubt on WhatsApp in a warm, encouraging way.
+
+{lang_instruction}
+
+Convert the following HTML answer to simple plain text with this structure:
+
+{opening_instruction}
+
+*MAIN ANSWER:*
+- Convert ALL HTML tags to simple text
+- Remove ALL LaTeX, mathematical notation, and special symbols
+- Explain concepts in simple, clear language
+- Use conversational style like a teacher explaining to a student
+- Make complex topics easy to understand
+- Use examples where helpful
+- *Use *asterisks* for bold/emphasis on important points*
+
+{closing_instruction}
+
+*FORMATTING RULES:*
+- Use *single asterisks* around words/phrases for emphasis (e.g., *important*, *formula*)
+- Make key concepts, terms, and important points bold using asterisks
+- Keep formatting clean and readable
+
+HTML Content to Convert:
+{html_content}
+
+Now write the complete answer in a warm, teacher-student conversation style:"""
+
+    client = OpenAI(api_key=settings.openai_api_key)
+
+    # Language-specific system message
+    if language.lower() == "hindi":
+        system_content = "You are Ritesh Sir - a caring, experienced teacher from Arivihan who teaches MP Board 12th students. You explain concepts warmly in PURE HINDI (Devanagari script only) like talking to your own child. NO English words - complete Hindi response only. You're helpful, encouraging, and make students feel comfortable asking doubts."
+    else:
+        system_content = "You are Ritesh Sir - a caring, experienced teacher from Arivihan who teaches MP Board 12th students. You explain concepts warmly in Hindi/Hinglish like talking to your own child. You're helpful, encouraging, and make students feel comfortable asking doubts."
+
     try:
-        # Remove HTML tags
-        text = re.sub(r'<[^>]+>', '', html_content)
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_content
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.7,
+            max_tokens=2500
+        )
 
-        # Clean up extra whitespace
-        text = re.sub(r'\s+', ' ', text).strip()
-
-        # Add personal touch based on language
-        if language.lower() == "hindi":
-            personal_intro = "देखो, "
-            text = personal_intro + text
-        else:
-            personal_intro = "Here's your answer: "
-            text = personal_intro + text
-
-        return text
+        plain_text = response.choices[0].message.content.strip()
+        return plain_text
 
     except Exception as e:
-        logger.error(f"[SubjectProcessor] HTML to text conversion error: {e}")
-        return html_content
+        print(f"❌ Error converting HTML to personalized text: {e}")
+        return None
 
 
 async def get_doubt_solution(

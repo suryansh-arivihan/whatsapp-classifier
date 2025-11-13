@@ -103,6 +103,9 @@ This includes:
 - **Questions about what level of lectures are available (basic/advanced), what types of exams are covered (e.g., NEET, JEE, CUET), whether material is available for a particular exam, and what exams Arivihan supports**
 - **Questions about last date to join a batch, batch duration, and app-specific schedule timelines**
 - **ALL REQUESTS FOR LECTURES** (e.g., "Mujhe vidhyut aavesh ka pyq lecture chahiye", "Physics ka lecture chahiye", "Maths ke lectures kaha hai")
+- **ALL REQUESTS FOR TESTS (accessing/getting tests)** (e.g., "Test chahiye", "Physics ka test do", "Chapterwise test kaha milege", "Mock test dena hai")
+  - Keywords: "test chahiye", "test do", "test milega", "test kaha hai", "test dena hai", "mock test"
+  - These are about ACCESSING/GETTING test content from the platform
 
 **Financial & Subscription Queries:**
 - **Questions about discounts, coupons, or pricing**
@@ -134,8 +137,10 @@ This includes:
 
 **IMPORTANT: ALL LECTURE REQUESTS are classified as app_related**
 
+**IMPORTANT: ALL TEST ACCESS REQUESTS are classified as app_related (e.g., "test chahiye", "test kaha milege", "mock test dena hai")**
+
 **KEY INDICATOR:**
-Is the student asking HOW TO USE the app, WHAT IS AVAILABLE in the app/platform, anything related to PRICING, PAYMENT, PURCHASING, HOW TO JOIN, FINANCIAL ASSISTANCE (including scholarships), ANY CONTACT INFORMATION, or **ANY LECTURE REQUESTS** **WITHOUT expressing dissatisfaction or reporting problems**?
+Is the student asking HOW TO USE the app, WHAT IS AVAILABLE in the app/platform, anything related to PRICING, PAYMENT, PURCHASING, HOW TO JOIN, FINANCIAL ASSISTANCE (including scholarships), ANY CONTACT INFORMATION, **ANY LECTURE REQUESTS**, or **ANY TEST ACCESS REQUESTS** (wanting to get/take/find tests) **WITHOUT expressing dissatisfaction or reporting problems**?
 
 ---
 
@@ -247,9 +252,16 @@ ANY request for questions, MCQs, or practice materials should ALWAYS be classifi
 - "physics questions chahiye" → exam_related_info
 - "maths ke questions send karo" → exam_related_info
 - "chemistry mcq de do" → exam_related_info
-- "test questions" → exam_related_info
 - "practice questions" → exam_related_info
 - "exercise questions" → exam_related_info
+
+**EXCEPTION FOR TEST REQUESTS:**
+HOWEVER, when someone is asking for TESTS (not questions about tests), classify as app_related:
+- "test chahiye" → app_related (wants to ACCESS test)
+- "physics ka test do" → app_related (wants to GET test)
+- "chapterwise test kaha milege" → app_related (wants to FIND test location)
+- "mock test dena hai" → app_related (wants to TAKE test)
+- BUT "test me kya questions aate hain" → exam_related_info (asking ABOUT test content)
 
 This rule overrides all other classification logic for question/MCQ requests.
 **CRITICAL DISTINCTION:**
@@ -262,7 +274,11 @@ This rule overrides all other classification logic for question/MCQ requests.
 6. exam_related_info: "mujhe fill in the blanks chahiye" (ANY fill in the blanks request)
 7. exam_related_info: "mujhe electric charge ke fill in the blanks chahiye" (topic-specific fill in the blanks request)
 8. app_related: "Pre board ke liye important questions kaise milege app se?" (asking how to access important questions from the platform)
-9. app_related: "Mujhe vidhyut aavesh ka pyq lecture chahiye" (ANY LECTURE request)**
+9. app_related: "Mujhe vidhyut aavesh ka pyq lecture chahiye" (ANY LECTURE request)
+10. app_related: "physics ke chapterwise test kaha milege" (asking WHERE to ACCESS tests from platform)
+11. app_related: "test chahiye physics ka" (wants to GET test content)
+12. app_related: "mock test dena hai" (wants to TAKE/ATTEMPT test)
+13. exam_related_info: "test me kitne marks ka paper hota hai" (asking ABOUT test structure)
 
 **IMPORTANT RULE:** ANY request for PYQ (Previous Year Questions), previous year papers, or past exam questions should ALWAYS be classified as exam_related_info, regardless of context.
 **IMPORTANT RULE:** Distinguish between two types of fill-in-the-blank queries:
@@ -271,9 +287,10 @@ This rule overrides all other classification logic for question/MCQ requests.
 - **Requests for fill-in-the-blank worksheets/materials**: classify as exam_related_info
   - Examples: "mujhe fill in the blanks chahiye", "fill in the blanks worksheets send karo"
 **IMPORTANT RULE:** ANY request for LECTURES should ALWAYS be classified as app_related, regardless of context.
+**IMPORTANT RULE:** ANY request to ACCESS/GET/TAKE TESTS should ALWAYS be classified as app_related, NOT exam_related_info.
 
 **KEY INDICATOR:**
-Is the student asking for EXAM-SPECIFIC ACADEMIC GUIDANCE, preparation strategies, important topics, book recommendations, important questions for exam preparation, ANY KIND OF PYQ/PREVIOUS YEAR QUESTIONS, OR ANY KIND OF FILL IN THE BLANKS — not about app functionality or content availability or lecture requests?
+Is the student asking for EXAM-SPECIFIC ACADEMIC GUIDANCE, preparation strategies, important topics, book recommendations, important questions for exam preparation, ANY KIND OF PYQ/PREVIOUS YEAR QUESTIONS, OR ANY KIND OF FILL IN THE BLANKS — BUT NOT asking to access/get/take tests, lectures, or other platform content?
 
 -------------------------
 

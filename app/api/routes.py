@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.core.logging_config import logger
 from app.services.classification_pipeline import classify_message
 from app.utils.exceptions import ClassifierException
+from app.utils.response_formatter import transform_to_simple_format
 
 
 router = APIRouter()
@@ -47,7 +48,7 @@ async def health_check():
 
 @router.post(
     "/classify",
-    response_model=ClassificationResponse,
+    response_model=dict,  # Changed from ClassificationResponse to dict for simple format
     status_code=status.HTTP_200_OK,
     responses={
         400: {"model": ErrorResponse, "description": "Invalid input"},
@@ -84,10 +85,23 @@ async def classify(request: ClassificationRequest):
             )
 
         # Execute classification pipeline
-        response = await classify_message(request.message)
+        full_response = await classify_message(request.message)
 
-        logger.info(f"[API] Classification successful: {response.classification}")
-        return response
+        logger.info(f"[API] ========== FULL RESPONSE (BEFORE TRANSFORMATION) ==========")
+        logger.info(f"[API] Classification: {full_response.classification}")
+        logger.info(f"[API] Response_data status: {full_response.response_data.get('status') if full_response.response_data else None}")
+        logger.info(f"[API] ===============================================================")
+
+        # Transform to simple format {status, message}
+        simple_response = transform_to_simple_format(full_response)
+
+        logger.info(f"[API] ========== SIMPLIFIED RESPONSE TO CLIENT ==========")
+        logger.info(f"[API] Status: {simple_response['status']}")
+        logger.info(f"[API] Message length: {len(simple_response['message'])} chars")
+        logger.info(f"[API] Message preview: {simple_response['message'][:200]}...")
+        logger.info(f"[API] ========================================================")
+
+        return simple_response  
 
     except ClassifierException as e:
         logger.error(f"[API] Classification error: {e}")

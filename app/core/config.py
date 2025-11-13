@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     api_description: str = "FastAPI service for classifying educational queries from WhatsApp"
 
     # OpenAI Model Configuration
-    openai_model: str = "gpt-4o-mini"
+    openai_model: str = "gpt-4.1-mini"
     openai_temperature: float = 0.0
     openai_max_tokens: int = 500
 

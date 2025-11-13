@@ -321,7 +321,8 @@ def get_content_response(content_type: str, language: str = "hindi") -> str:
     Get the appropriate content response based on content type and language.
 
     Args:
-        content_type: One of: lecture, notes, toppers_notes, test_chapterwise, test_full_length
+        content_type: One of: lecture, notes, toppers_notes, test_chapterwise, test_full_length,
+                      chapterwise, full_length (API naming)
         language: Hindi or Hinglish (default: Hinglish)
 
     Returns:
@@ -331,10 +332,26 @@ def get_content_response(content_type: str, language: str = "hindi") -> str:
         # Normalize language
         lang_key = "hindi" if language.lower() == "hindi" else "hinglish"
 
+        # Map API naming to CONTENT_RESPONSES keys
+        content_type_mapping = {
+            "full_length": "test_full_length",
+            "chapterwise": "test_chapterwise",
+            # Keep original keys for backward compatibility
+            "test_full_length": "test_full_length",
+            "test_chapterwise": "test_chapterwise",
+            "lecture": "lecture",
+            "notes": "notes",
+            "toppers_notes": "toppers_notes",
+            "important_questions": "important_questions"
+        }
+
+        # Get the mapped content type
+        mapped_type = content_type_mapping.get(content_type, content_type)
+
         # Get response template
-        if content_type in CONTENT_RESPONSES:
-            response = CONTENT_RESPONSES[content_type][lang_key]
-            logger.info(f"[ContentResponses] Generated {content_type} response in {lang_key}")
+        if mapped_type in CONTENT_RESPONSES:
+            response = CONTENT_RESPONSES[mapped_type][lang_key]
+            logger.info(f"[ContentResponses] Generated {mapped_type} response (from {content_type}) in {lang_key}")
             return response
         else:
             # Default to lecture response if content_type not found

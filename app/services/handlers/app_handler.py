@@ -1,27 +1,22 @@
 """
 Handler for app-related queries.
-Handles questions about app features, navigation, pricing, subscriptions, etc.
-Also includes content classification for lectures, notes, tests.
-Uses local content response templates.
+Routes to app_related_classifier for proper sub-classification:
+- screen_data_related: Navigation/how-to questions -> app_screen_related_main
+- app_data_related: Content requests -> content templates
+- subscription_data_related: Pricing/plans -> subscription template
 """
 from typing import Dict, Any
 from app.services.handlers.base_handler import BaseResponseHandler
 from app.core.logging_config import logger
-from app.services.content_classifier import simple_classify
-from app.services.content_responses import app_content_main
+from app.services.app_related_classifier import app_related_classifier_main
 
 
 class AppHandler(BaseResponseHandler):
-    """Handler for app-related classification responses using local templates."""
-
-    def __init__(self):
-        """Initialize the app handler."""
-        pass
+    """Handler for app-related classification responses using sub-classification routing."""
 
     async def handle(self, query: str, classification_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Generate app-related response for the query using local templates.
-        Performs content classification for lecture/notes/test requests.
+        Route app-related queries through app_related_classifier for sub-classification.
 
         Args:
             query: The user's query (translated if needed)
@@ -31,61 +26,49 @@ class AppHandler(BaseResponseHandler):
             Dict with response data
         """
         try:
-            logger.info(f"[AppHandler] Processing query locally: {query[:100]}...")
+            logger.info(f"[AppHandler] Routing to app_related_classifier for sub-classification...")
 
-            # Classify the content type (lecture, notes, test, etc.)
-            content_type = None
-            try:
-                content_type = simple_classify(query)
-                logger.info(f"[AppHandler] Content type: {content_type}")
-            except Exception as e:
-                logger.warning(f"[AppHandler] Content classification failed: {e}")
-                # Default to lecture if classification fails
-                content_type = "lecture"
-
-            # Prepare data for local processor
-            # Normalize language to API format (only "english" or "hindi" accepted)
-            raw_language = classification_data.get("language", "hindi")
-            language = raw_language.lower() if raw_language else "hindi"
-            # Map hindlish to hindi since API only accepts english/hindi
-            if language == "hindlish":
-                language = "hindi"
-
+            # Prepare json_data for app_related_classifier_main
             json_data = {
-                "message": query,
                 "userQuery": query,
+                "message": query,
                 "subject": classification_data.get("subject"),
-                "language": language
+                "language": classification_data.get("language", "hindi"),
+                "requestType": "text"
             }
 
-            # Get classification type
-            initial_classification = classification_data.get("main_classification", "app_related")
+            # Get initial classification
+            initial_classification = classification_data.get("classification", "app_related")
 
-            # Process using local content response generator
-            processor_response = app_content_main(json_data, initial_classification, content_type)
+            # Route through app_related_classifier_main for proper sub-classification
+            # This will automatically route to:
+            # - screen_data_related -> app_screen_related_main (GPT-based FAQ)
+            # - app_data_related -> content templates
+            # - subscription_data_related -> subscription message
+            result = await app_related_classifier_main(json_data, "user_id", initial_classification)
 
-            # Wrap the processor response
+            # Wrap the result in the expected handler response format
             response = {
                 "status": "success",
-                "data": processor_response,
-                "message": "App-related response generated successfully (local)",
+                "data": result,
+                "message": "App-related response generated via classifier routing",
                 "metadata": {
                     "subject": classification_data.get("subject"),
                     "language": classification_data.get("language"),
-                    "content_type": content_type,
-                    "processor": "local"
+                    "classified_as": result.get("classifiedAs"),
+                    "processor": "app_related_classifier"
                 }
             }
 
-            logger.info(f"[AppHandler] Local response generated successfully")
+            logger.info(f"[AppHandler] Classifier routing completed: {result.get('classifiedAs')}")
             return response
 
         except Exception as e:
-            logger.error(f"[AppHandler] Error generating local response: {e}")
+            logger.error(f"[AppHandler] Error in classifier routing: {e}")
             return {
                 "status": "error",
                 "data": None,
-                "message": f"Failed to generate app-related response: {str(e)}"
+                "message": f"Failed to route app-related query: {str(e)}"
             }
 
 

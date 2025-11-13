@@ -31,15 +31,14 @@ class ComplaintHandler(BaseResponseHandler):
         try:
             logger.info(f"[ComplaintHandler] Processing complaint: {query[:100]}...")
 
+
             # Placeholder response
             response = {
                 "status": "success",
                 "data": {
                     "type": "complaint",
                     "text": (
-                        "We sincerely apologize for the inconvenience you're experiencing. "
-                        "Your concern has been noted and our support team will reach out to you shortly. "
-                        "For immediate assistance, please contact our customer care through the Arivihan app."
+                        "whatsapp"
                     ),
                     "ticket_created": False,  # TODO: Create actual ticket
                     "support_contact": "Available in Arivihan App"

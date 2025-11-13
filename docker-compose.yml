@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: whatsapp-classifier-api
     ports:
-      - "8000:8000"
+      - "5001:8000"
     environment:
       # OpenAI Configuration
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -28,6 +28,7 @@ services:
       - .env
     volumes:
       - ./app:/app/app  # Mount for development hot-reload
+      - ./data:/app/data  # Mount data directory for parquet files
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/ping')"]

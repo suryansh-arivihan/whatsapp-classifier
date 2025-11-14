@@ -1,11 +1,12 @@
 """
 Classification pipeline orchestrator.
 Coordinates the complete classification flow:
-1. Subject & Language Detection
-2. Translation (if needed)
-3. Main Classification
-4. Exam Sub-Classification (if exam_related_info)
-5. Response Generation (via appropriate handler)
+1. Follow-up Detection & Context Enrichment (if history exists)
+2. Subject & Language Detection
+3. Translation (if needed)
+4. Main Classification
+5. Exam Sub-Classification (if exam_related_info)
+6. Response Generation (via appropriate handler)
 """
 import time
 from typing import Optional
@@ -15,6 +16,7 @@ from app.services.subject_language_detector import SubjectLanguageDetector
 from app.services.translator import translate_query
 from app.services.main_classifier import initial_main_classifier
 from app.services.exam_classifier import exam_related_main_classifier
+from app.services.followup_detector import followup_detector
 from app.utils.exceptions import ClassificationError
 
 # Import all handlers
@@ -43,12 +45,13 @@ class ClassificationPipeline:
             "complaint": complaint_handler
         }
 
-    async def classify(self, message: str) -> ClassificationResponse:
+    async def classify(self, message: str, phone_number: Optional[str] = None) -> ClassificationResponse:
         """
         Execute the complete classification pipeline.
 
         Args:
             message: User query message
+            phone_number: User's phone number for history tracking (optional)
 
         Returns:
             ClassificationResponse with all classification details
@@ -57,9 +60,29 @@ class ClassificationPipeline:
             ClassificationError: If any step in the pipeline fails
         """
         start_time = time.time()
+        is_follow_up = False
+        original_message = message
 
         try:
             logger.info(f"[Pipeline] Starting classification for message: {message[:100]}...")
+
+            # Step 0: Follow-up detection and context enrichment
+            if phone_number:
+                logger.info(f"[Pipeline] Checking follow-up for phone: {phone_number}")
+                followup_result = await followup_detector.detect_and_enrich(message, phone_number)
+
+                if followup_result.is_follow_up and followup_result.enriched_message:
+                    logger.info(
+                        f"[Pipeline] Follow-up detected! "
+                        f"Original: '{message}' -> "
+                        f"Enriched: '{followup_result.enriched_message}'"
+                    )
+                    message = followup_result.enriched_message  # Use enriched message
+                    is_follow_up = True
+                else:
+                    logger.info(f"[Pipeline] Not a follow-up, using original message")
+            else:
+                logger.info(f"[Pipeline] No phone_number provided, skipping follow-up detection")
 
             # Step 1: Detect subject and language
             detection_result = self.subject_language_detector.detect(message)
@@ -113,7 +136,8 @@ class ClassificationPipeline:
                         "subject": subject,
                         "language": language,
                         "original_message": message,
-                        "translated_message": translated_message
+                        "translated_message": translated_message,
+                        "phone_number": phone_number  # Add phone_number for handlers
                     }
 
                     response_data = await handler.handle(query_to_classify, classification_data)
@@ -138,13 +162,20 @@ class ClassificationPipeline:
             # Calculate processing time
             processing_time = (time.time() - start_time) * 1000  # Convert to milliseconds
 
+            # Add follow-up flag to response_data metadata if it exists
+            if response_data and isinstance(response_data, dict):
+                if 'metadata' not in response_data:
+                    response_data['metadata'] = {}
+                response_data['metadata']['is_follow_up'] = is_follow_up
+                response_data['metadata']['original_message'] = original_message
+
             # Build response
             response = ClassificationResponse(
                 classification=main_classification,
                 sub_classification=sub_classification,
                 subject=subject,
                 language=language,
-                original_message=message,
+                original_message=original_message,  # Use actual original message
                 translated_message=translated_message,
                 confidence_score=0.85,  # Placeholder, can be enhanced later
                 response_data=response_data,
@@ -172,14 +203,15 @@ class ClassificationPipeline:
 pipeline = ClassificationPipeline()
 
 
-async def classify_message(message: str) -> ClassificationResponse:
+async def classify_message(message: str, phone_number: Optional[str] = None) -> ClassificationResponse:
     """
     Main entry point for classification.
 
     Args:
         message: User query message
+        phone_number: User's phone number for history tracking (optional)
 
     Returns:
         ClassificationResponse with complete classification details
     """
-    return await pipeline.classify(message)
+    return await pipeline.classify(message, phone_number)

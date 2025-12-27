@@ -35,6 +35,7 @@ class FollowUpDetectionResult(BaseModel):
     original_message: str = Field(..., description="Original user message")
     context_used: List[str] = Field(default_factory=list, description="Previous messages used as context")
     confidence: Optional[float] = Field(None, description="Confidence score (0-1) if applicable")
+    should_stop_conversation: bool = Field(default=False, description="Whether user wants to stop the conversation")
 
 
 class HistorySaveRequest(BaseModel):

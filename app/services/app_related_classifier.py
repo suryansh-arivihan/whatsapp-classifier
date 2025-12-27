@@ -51,6 +51,16 @@ Return ONLY one of the following:
 
 ## 🔍 **CLASSIFICATION LOGIC** (Follow this order):
 
+### **STEP 0: Check for FEES/PRICING Keywords (HIGHEST PRIORITY)**
+
+🔸 **If the query contains ANY fees/pricing related words** → **subscription_data_related**
+
+**Fees Keywords (ALWAYS subscription_data_related):**
+- "fees", "fee", "kitni fees", "fees kitni", "fees kya hai", "fees batao"
+- "price", "pricing", "cost", "kitna paisa", "paisa kitna"
+- ANY question about fees of ANYTHING (Arivihan, other coaching, colleges, exams)
+- Examples: "Allen ki fees kitni hai?", "IIT ki fees", "JEE fees", "Physics Wallah fees", "coaching fees"
+
 ### **STEP 1: Check Primary Action Intent**
 
 🔸 **If the PRIMARY ACTION is about HOW-TO/NAVIGATION/DOWNLOAD PROCESS** → **screen_data_related**
@@ -124,13 +134,14 @@ Use when the **main focus** is on:
 - "physics ka lecture chahiye" → app_data_related (content request)
 - "test attempt karna hai" → app_data_related (content usage)
 
-### 🔸 **subscription_data_related** (Plans/Payment)
+### 🔸 **subscription_data_related** (Plans/Payment/Fees)
 
 Use when the **main focus** is on:
 - **Plans**: subscription plans, monthly/yearly plans, combo plans, plan features
 - **Pricing**: cost, price, discount, offers, coupons, kitna paisa
 - **Payment**: buy, purchase, payment process, unlock via payment
 - **Plan Benefits**: what's included in plan, plan comparison
+- **ANY FEES QUERY**: fees of anything - Arivihan, other coaching, colleges, exams, universities
 
 ✅ **EXAMPLES**:
 - "subscription plan kya hai" → subscription_data_related
@@ -140,6 +151,12 @@ Use when the **main focus** is on:
 - "discount coupon hai kya" → subscription_data_related
 - "plan khareedna hai" → subscription_data_related
 - "unlock karne ke liye paisa lagta hai" → subscription_data_related
+- "fees kitni hai" → subscription_data_related
+- "Allen ki fees kitni hai" → subscription_data_related
+- "IIT ki fees kya hai" → subscription_data_related
+- "Physics Wallah fees" → subscription_data_related
+- "coaching ki fees" → subscription_data_related
+- "JEE exam fees" → subscription_data_related
 
 ---
 
@@ -175,10 +192,11 @@ Classification: screen_data_related
 
 ## 🔧 **CLASSIFICATION PRIORITY ORDER**
 
-1. **Check for DOWNLOAD/PROCESS words** → If found → **screen_data_related**
-2. **Check for PLAN/PAYMENT words** → If found → **subscription_data_related**
-3. **Check for CONTENT ACCESS intent** → If found → **app_data_related**
-4. **Default to context-based classification**
+1. **Check for FEES/PRICING words** → If found → **subscription_data_related** (HIGHEST PRIORITY)
+2. **Check for DOWNLOAD/PROCESS words** → If found → **screen_data_related**
+3. **Check for PLAN/PAYMENT words** → If found → **subscription_data_related**
+4. **Check for CONTENT ACCESS intent** → If found → **app_data_related**
+5. **Default to context-based classification**
 
 ---
 
@@ -196,11 +214,12 @@ Classification: screen_data_related
 ## 📌 **FINAL CHECK**
 
 Ask yourself:
-1. **Is the user asking HOW TO DO something?** → screen_data_related
-2. **Is the user asking about PLANS/PAYMENT?** → subscription_data_related  
-3. **Is the user asking for SPECIFIC CONTENT?** → app_data_related
+1. **Is the user asking about FEES/PRICING of anything?** → subscription_data_related (ALWAYS)
+2. **Is the user asking HOW TO DO something?** → screen_data_related
+3. **Is the user asking about PLANS/PAYMENT?** → subscription_data_related
+4. **Is the user asking for SPECIFIC CONTENT?** → app_data_related
 
-**Remember**: The PRIMARY ACTION determines the category, not the subject matter.
+**Remember**: FEES queries ALWAYS go to subscription_data_related, regardless of what the fees are about.
 
 ---
 
@@ -251,16 +270,89 @@ def normalize(text):
     text = text.strip()
     return text
 
-async def app_related_classifier_main(json_data, user_id, initial_classification):
+async def app_related_classifier_main(json_data, user_id, initial_classification, first_message: bool = False):
     """
     Main classifier for app-related queries with sub-classification:
     - subscription_data_related: Send promotional message
     - app_data_related: Route to app_handler
     - screen_data_related: Route to app_related_screen
+
+    Args:
+        json_data: Request data
+        user_id: User phone number
+        initial_classification: Classification result
+        first_message: Whether this is the user's first message (default: False)
     """
     question = json_data["userQuery"]
 
     logger.info(f"[Classifier App Related Main] app related main classification starts")
+    logger.info(f"[Classifier App Related Main] first_message: {first_message}")
+
+    question_lower = question.lower()
+
+    # Check for fees/pricing related queries - ALWAYS route to subscription_data_related
+    fees_keywords = ["fees", "fee", "kitni fees", "fees kitni", "price", "pricing", "cost", "paisa kitna", "kitna paisa"]
+    if any(keyword in question_lower for keyword in fees_keywords):
+        logger.info(f"[Classifier App Related Main] Fees/pricing query detected - routing to subscription_data_related")
+
+        # Send subscription promotional message
+        subscription_message = """*SAMBHAV - Class 12th Crash Course launch ho gaya hai.*
+
+*Isme aapko milege:*
+✓ Live classes
+✓ Important questions
+✓ PYQs solved
+✓ Doubt support
+
+Fees (Code: SAMBHAV50 lagao):
+PCM/PCB/PCMB - ₹1,249
+Commerce - ₹999
+Arts - ₹749
+
+Hindi + English dono medium mein available.
+
+👇 Link pe click karo aur abhi join karo sambhav batch
+
+https://arivihan.com/deeplink?redirectTo=campaign-subscription"""
+
+        result = {
+            "initialClassification": initial_classification,
+            "classifiedAs": "subscription_data_related",
+            "response": {"text": subscription_message, "queryType": "subscription", "request_type": "app_related"},
+            "openWhatsapp": False,
+            "responseType": json_data.get("requestType", ""),
+            "actions": "",
+            "microLecture": "",
+            "testSeries": "",
+        }
+
+        logger.info(f"[Classifier App Related Main] Subscription message sent for fees query")
+        return result
+
+    # Check for Sambhav batch related queries - route directly to screen_data_related
+    if "sambhav" in question_lower:
+        logger.info(f"[Classifier App Related Main] Sambhav batch query detected - routing to screen_data_related")
+        result = app_screen_related_main(json_data, initial_classification)
+
+        # Check if the response indicates "I don't know"
+        if isinstance(result.get("response"), dict) and "text" in result["response"]:
+            answer = normalize(result["response"]["text"])
+        else:
+            answer = normalize(str(result.get("response", "")))
+
+        if answer == "i dont know something" or answer == "div stylecolor26c6dabi dont knowbdiv":
+            logger.info(f"[Classifier App Related Main] app screen data couldn't answer Sambhav query - returning basic response")
+            result = {
+                "initialClassification": initial_classification,
+                "classifiedAs": "screen_data_related",
+                "response": "I couldn't find information about that. Please contact support for assistance.",
+                "openWhatsapp": True,
+                "responseType": json_data.get("requestType", ""),
+                "actions": "",
+                "microLecture": "",
+                "testSeries": "",
+            }
+        return result
 
     app_classification = supervisor_agent.handle_doubt(question)
     logger.info(f"[Classifier App Related Main] Sub-classified as: {app_classification}")
@@ -269,30 +361,24 @@ async def app_related_classifier_main(json_data, user_id, initial_classification
         logger.info(f"[Classifier App Related Main] subscription_data_related classification")
 
         # Send subscription promotional message
-        subscription_message = """🔥 *Arre sunno sunno! Board Exams aa rahe hain!* 😱
+        subscription_message = """*SAMBHAV - Class 12th Crash Course launch ho gaya hai.*
 
-*Tumhare dost UNNATI BATCH join kar chuke hain... aur tum?* 🤔
+*Isme aapko milege:*
+✓ Live classes
+✓ Important questions
+✓ PYQs solved
+✓ Doubt support
 
-*Dekho kya miss ho raha hai:*
+Fees (Code: SAMBHAV50 lagao):
+PCM/PCB/PCMB - ₹1,249
+Commerce - ₹999
+Arts - ₹749
 
-📚 LIVE Classes - ghar baithe school jaisa padhai! (Physics, Chemistry, Maths/Bio, English, Hindi + Arts & Commerce)
-📝 3000+ Questions solve karoge - PYQs included!
-✍️ Toppers ki Copy dekh ke likhna seekhoge - presentation game strong! 💪
-📋 Most Probable Questions wale Sample Papers milenge!
-⏰ Daily Time Table - ab koi excuse nahi chalega! 😎
-💬 24×7 Doubt Solving - raat ko 2 baje bhi doubt clear! 🌙
-🎯 60+ Mock Tests + 12 Pre-Boards - exam se pehle exam!
-��‍🏫 MP Board ke BEST Teachers padhayenge! 🌐 Hindi & English dono medium mein!
-💯 90%+ guaranteed - Unnati ka promise hai ye! ⭐
+Hindi + English dono medium mein available.
 
-*Sabse bada dhamaka:*
-❌ Rs. 2999 ✅ Sirf Rs. 2499 EXAM TAK KE LIYE! 😍
-🎁 Aur suno! Early Bird Discount bhi chahiye? Code lagao: RITESH40 🔥
-⚠️ Seats tezi se bhar rahi hain! Kal tak sochoge toh price badh jayegi! 😬
-🚀 Abhi join karo!
+👇 Link pe click karo aur abhi join karo sambhav batch
 
-Baaki sab 90% la rahe hain... tum 60% pe atke rahoge? 🙈
-📲 *JOIN NOW - ye mauka phir nahi milega!* ⏳"""
+https://arivihan.com/deeplink?redirectTo=campaign-subscription"""
 
         result = {
             "initialClassification": initial_classification,
@@ -368,7 +454,7 @@ Baaki sab 90% la rahe hain... tum 60% pe atke rahoge? 🙈
             }
 
             # Generate content response
-            processor_response = app_content_main(content_json_data, initial_classification, content_type)
+            processor_response = app_content_main(content_json_data, initial_classification, content_type, first_message)
 
             # Return in expected format
             result = {

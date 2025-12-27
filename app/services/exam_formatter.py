@@ -93,6 +93,7 @@ One coulomb charge has _____ electrons.
 ...
 
 ⭐ *इन सभी प्रश्नों को solve करके अपनी तैयारी मजबूत बनाएं!*
+maxium word length - 75-150 words
 """
         else:
             system_prompt = """You are an education assistant who formats previous year questions for WhatsApp.
@@ -123,6 +124,7 @@ Vidyut aavesh ke quantisation ka mathematical form likhiye.
 ...
 
 ⭐ *In sabhi questions ko solve karke apni preparation strong banao!*
+maxium word length - 75-150 words
 """
 
         user_prompt = f"""Subject: {verified_subject}

@@ -19,7 +19,7 @@ CONTENT_RESPONSES = {
 ✅ Concepts clear h ya confusion h
 
 *Har chapter ko properly complete karne ke liye test do:*
-📲 https://arivihan.com/deeplink?redirectTo=test-series-intro&type=REATTEMPT&testId=PHYTest1&id=board&position=0&subject=overall&combined=true
+📲 https://arivihan.com/deeplink?redirectTo=test-series&id=xyz&title=xyz&fromHalfYearly=false
 
 *Arivihan app se apni taiyari ko aur strong banao!* 💪""",
 
@@ -33,7 +33,7 @@ CONTENT_RESPONSES = {
 ✅ अवधारणाएं स्पष्ट हैं या भ्रम है
 
 *हर अध्याय को ठीक से पूरा करने के लिए टेस्ट दो:*
-📲 https://arivihan.com/deeplink?redirectTo=test-series-intro&type=REATTEMPT&testId=PHYTest1&id=board&position=0&subject=overall&combined=true
+📲 https://arivihan.com/deeplink?redirectTo=test-series&id=xyz&title=xyz&fromHalfYearly=false
 
 *अरिविहान ऐप से अपनी तैयारी को और मजबूत बनाओ!* 💪""",
     },
@@ -51,7 +51,7 @@ CONTENT_RESPONSES = {
 📝 *Test doge tabhi pata chalega - taiyaari kaisi hai!*
 
 *Abhi test do:*
-📲 https://arivihan.com/deeplink?redirectTo=test-series-intro&type=REATTEMPT&testId=PHYTest1&id=board&position=0&subject=overall&combined=true
+📲 https://arivihan.com/deeplink?redirectTo=test-series&id=xyz&title=xyz&fromHalfYearly=false
 
 *Arivihan app se apni taiyaari ko perfect banao!* 💪
 """,
@@ -68,7 +68,7 @@ CONTENT_RESPONSES = {
 📝 *टेस्ट दोगे तभी पता चलेगा - तैयारी कैसी है!*
 
 *अभी टेस्ट दो:*
-📲 https://arivihan.com/deeplink?redirectTo=test-series-intro&type=REATTEMPT&testId=PHYTest1&id=board&position=0&subject=overall&combined=true
+📲 https://arivihan.com/deeplink?redirectTo=test-series&id=xyz&title=xyz&fromHalfYearly=false
 
 *अरिविहान ऐप से अपनी तैयारी को परफेक्ट बनाओ!* 💪
 """
@@ -110,39 +110,27 @@ CONTENT_RESPONSES = {
 
     "toppers_notes": {
         "hinglish": """
+*Hello Beta, ye pichle saal ki hamari topper Priyal ke notes hain.*
+Aaj hum ye samjhege ki toppers exam me kaise likhte hain,
+aur woh aisa kya alag karte hain ki unke lagbhag poore hi marks aa jate hain.
 
-📝 *Arivihan par milte hain TOPPERS NOTES!*
+Toppers ke notes se tum yahan se padh sakte ho:
+https://arivihan.com/deeplink?redirectTo=topper-notes&overall=false&preExamPreparation=false
 
-🎯 Kya unique hai:
-✅ MP Board ke *real toppers ke notes*
-✅ Dekho *toppers kaise padhte the*
-✅ Unki study technique samjho
-✅ Same pattern follow karo = Better results
-
-💡 *Toppers ka secret ab tumhara secret!*
-
-*Toppers ki strategy dekho:*
-📲 https://arivihan.com/deeplink?redirectTo=topper-notes&overall=false&preExamPreparation=false
-
-*Toppers jaise padhne ke liye Arivihan app install karo!* 💪
+Main *Ritesh Sir* (Arivihan se), tumhe isi tarah padhai me help karta rahunga,
+taaki agle saal jab toppers ki baat hogi, tumhara naam bhi unmein ho. 💪📚
 """,
 
         "hindi":"""
+*हेलो बेटा,* ये पिछले साल की हमारी टॉपर प्रियल के नोट्स हैं।
+आज हम ये समझने की कोशिश करेंगे कि टॉपर लोग एग्ज़ाम में कैसे लिखते हैं,
+और वो ऐसा क्या अलग करते हैं कि उनके लगभग सारे ही मार्क्स आ जाते हैं।
 
-📝 *अरिविहान पर मिलते हैं टॉपर्स नोट्स!*
+टॉपर प्रियल ने कैसे लिखा है, वो तुम यहाँ से देख सकते हो:
+https://arivihan.com/deeplink?redirectTo=topper-notes&overall=false&preExamPreparation=false
 
-🎯 क्या अनोखा है:
-✅ एमपी बोर्ड के *असली टॉपर्स के नोट्स*
-✅ देखो *टॉपर्स कैसे पढ़ते थे*
-✅ उनकी अध्ययन तकनीक समझो
-✅ वही पैटर्न फॉलो करो = बेहतर परिणाम
-
-💡 *टॉपर्स का रहस्य अब तुम्हारा रहस्य!*
-
-*टॉपर्स की रणनीति देखो:*
-📲 https://arivihan.com/deeplink?redirectTo=topper-notes&overall=false&preExamPreparation=false
-
-*टॉपर्स जैसे पढ़ने के लिए अरिविहान ऐप इंस्टॉल करो!* 💪
+मैं *रितेश सर (Arivihan से)* , इसी तरह तुम्हारी पढ़ाई में मदद करता रहूँगा,
+ताकि अगले साल जब टॉपर्स की बात होगी, तुम्हारा नाम भी उन्हीं में हो। 💪📚
 """
     },
 
@@ -156,7 +144,7 @@ CONTENT_RESPONSES = {
 ✅ Chapter-wise aur Lecture-wise organized
 
 *Sabhi chapters ke Lecture Notes yahan:*
-📲 https://arivihan.com/lecture-notes
+📲 https://dm80t6147awlm.cloudfront.net/2025_BOARD/MP_BOARD_2025/ENGLISH_MEDIUM/PHYSICS/COMBINED/Electric%20Charges%20and%20field.pdf
 
 *Complete notes ke liye Arivihan app install karo!* 💪
 """,
@@ -170,7 +158,7 @@ CONTENT_RESPONSES = {
 ✅ अध्याय-वार और लेक्चर-वार व्यवस्थित
 
 *सभी अध्यायों के लेक्चर नोट्स यहाँ:*
-📲 https://arivihan.com/lecture-notes
+📲 https://dm80t6147awlm.cloudfront.net/2025_BOARD/MP_BOARD_2025/HINDI_MEDIUM/PHYSICS/COMBINED/विद्युत आवेश और क्षेत्र.pdf
 
 *संपूर्ण नोट्स के लिए अरिविहान ऐप इंस्टॉल करो!* 💪
 """
@@ -186,7 +174,7 @@ CONTENT_RESPONSES = {
 ✅ Step-by-step solution har question ka
 
 *Sabhi chapters ke Important Questions yahan:*
-📲 https://arivihan.com/important-questions
+📲 https://d26ziiio1s8scf.cloudfront.net/FINAL_EXAM/PHYSICS/ChapterwiseNotes/PHY_ENG_EFC_COMBINED.pdf
 
 *Detailed explanations ke liye Arivihan app install karo!* 💪
 """,
@@ -200,7 +188,7 @@ CONTENT_RESPONSES = {
 ✅ हर प्रश्न का चरण-दर-चरण समाधान
 
 *सभी अध्यायों के महत्वपूर्ण प्रश्न यहाँ:*
-📲 https://arivihan.com/important-questions
+📲 https://d26ziiio1s8scf.cloudfront.net/FINAL_EXAM/PHYSICS/ChapterwiseNotes/PHY_HIN_EFC_COMBINED.pdf
 
 *विस्तृत स्पष्टीकरण के लिए अरिविहान ऐप इंस्टॉल करो!* 💪
 """ 
@@ -256,7 +244,7 @@ def get_content_response(content_type: str, language: str = "hindi") -> str:
         return "📲 *Arivihan app download karo aur apni padhai shuru karo!*\n\n👉 https://arivihan.com/deeplink?redirectTo=doubt&doubtId=chatSessionId"
 
 
-def app_content_main(json_data: Dict[str, Any], initial_classification: str, content_type: str) -> Dict[str, Any]:
+def app_content_main(json_data: Dict[str, Any], initial_classification: str, content_type: str, first_message: bool = False) -> Dict[str, Any]:
     """
     Main entry point for app content processing.
 
@@ -264,6 +252,7 @@ def app_content_main(json_data: Dict[str, Any], initial_classification: str, con
         json_data: Request data with message, language
         initial_classification: Classification result
         content_type: Type of content requested (lecture, notes, etc.)
+        first_message: Whether this is the user's first message (default: False)
 
     Returns:
         Complete response dict with classification and response
@@ -279,9 +268,15 @@ def app_content_main(json_data: Dict[str, Any], initial_classification: str, con
         logger.info(f"[AppContent] Processing app content request")
         logger.info(f"  Content Type: {content_type}")
         logger.info(f"  Language: {language}")
+        logger.info(f"  First Message: {first_message}")
 
         # Get the appropriate response
         response_text = get_content_response(content_type, language)
+
+        # Add welcome message if this is the first message
+        if first_message:
+            welcome_message = "Namaste beta! Main Arivihan se Ritesh Sir hu. Main board exam me aapki madad karuga. Ye rahe aapke physics ke pahle chapter ke important notes.\n\n📚 https://d26ziiio1s8scf.cloudfront.net/FINAL_EXAM/PHYSICS/ChapterwiseNotes/PHY_HIN_EFC_COMBINED.pdf\n\nIsi tarah aapko exam me koi bhi madad chahiye to aap bataiye.\n\n"
+            response_text = welcome_message + response_text
 
         # Build response
         result = {
@@ -294,6 +289,7 @@ def app_content_main(json_data: Dict[str, Any], initial_classification: str, con
             "actions": "",
             "microLecture": "",
             "testSeries": "",
+            "firstMessage": first_message,
         }
 
         logger.info("[AppContent] App content response completed")

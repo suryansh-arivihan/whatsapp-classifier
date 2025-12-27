@@ -3335,6 +3335,8 @@ class HinglishAcademicTranslator:
 
         prompt = f"""ONLY return the translated sentence and never modify the original sentence - just translate it exactly as intended.
 
+CRITICAL: Do NOT translate these batch/program names - keep them exactly as written: "Sambhav", "Unnati" (case-insensitive). These are proper nouns referring to educational program batches.
+
 You are an expert translator specializing in academic Hinglish (Hindi-English mix) to English translation for Indian students.
 
 CRITICAL: Students often make SPELLING ERRORS and use PHONETIC SPELLINGS. You MUST recognize the intended academic terms despite typos, missing letters, extra letters, or phonetic variations.
@@ -3348,6 +3350,7 @@ TRANSLATION RULES:
 3. **INTELLIGENT MATCHING**: Match partial or misspelled terms to closest academic concept
 4. **ACADEMIC PRIORITY**: When unsure, choose the most likely academic interpretation
 5. **COMMON PATTERNS**: Recognize patterns like "ka lecture", "ke gun", "chapter de do"
+6. **PRESERVE BATCH NAMES**: Do NOT translate batch names "Sambhav" and "Unnati" - keep them exactly as they are (these are program/batch names)
 
 COMMON ERROR PATTERNS:
 - "goss" = "gauss", "mendal" = "mendel", "rashaynik" = "rasayanik"
@@ -3380,7 +3383,7 @@ Translate to clear, grammatically correct English:"""
             response = self.client.chat.completions.create(
                 model="gpt-4.1-mini",   # fast & cheap for translation
                 messages=[
-                    {"role": "system", "content": "You are a specialized academic translator for Hinglish to English translation with expertise in Science and Math terminology."},
+                    {"role": "system", "content": "You are a specialized academic translator for Hinglish to English translation with expertise in Science and Math terminology. IMPORTANT: Never translate batch/program names 'Sambhav' and 'Unnati' - keep them exactly as is."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=200,

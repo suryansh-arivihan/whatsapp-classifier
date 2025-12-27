@@ -81,12 +81,22 @@ class FollowUpDetector:
             logger.info(f"[FollowUpDetector] Analyzing with {len(history.messages)} previous messages")
 
             # Create GPT prompt for follow-up detection
-            system_prompt = """You are an intelligent assistant that analyzes conversations to detect follow-up questions.
+            system_prompt = """You are an intelligent assistant that analyzes conversations to detect follow-up questions and stop conversation requests.
 
 Your task:
-1. Determine if the current message is a follow-up to the previous conversation
-2. If yes, rewrite the message to include necessary context for standalone understanding
-3. If no, return the original message unchanged
+1. FIRST check if the user wants to STOP the conversation
+2. If not stopping, determine if the current message is a follow-up to the previous conversation
+3. If follow-up, rewrite the message to include necessary context for standalone understanding
+4. If not follow-up, return the original message unchanged
+
+STOP CONVERSATION detection (highest priority):
+A message indicates STOP CONVERSATION if user expresses they want to end the chat or be left alone:
+- Direct stop phrases: "don't respond", "stop", "leave me alone", "bye", "goodbye"
+- Hindi: "chup hojao", "chup raho", "mat bolo", "band karo", "mujhe baat nahi karni", "mujhe baat nahi karna h", "disturb mat karo", "tang mat karo", "pareshan mat karo", "jane do", "rehne do"
+- Frustrated expressions: "don't disturb me", "stop messaging", "I don't want to talk", "not interested"
+- Dismissive: "go away", "shut up", "enough", "bas karo", "bas", "hatao"
+
+If STOP CONVERSATION is detected, return: {"is_follow_up": false, "enriched_message": null, "should_stop": true}
 
 A message is a FOLLOW-UP if:
 - It references previous topics ("that", "it", "this", "the one you mentioned")
@@ -94,25 +104,50 @@ A message is a FOLLOW-UP if:
 - It uses pronouns without clear antecedents
 - It continues a line of questioning from before
 - It's a short phrase like "more", "yes", "explain", "how?" that needs context
+- It's a teacher greeting that checks on study progress (Hindi: "kya padha", "kaisi chal rahi h padhai", "kaise h aap")
+- It's a conversational greeting from teacher that continues the learning conversation (e.g., "Hello beta", "Namaste beta")
+
+IMPORTANT: If there is previous conversation history about studies/exams/subjects, then teacher greetings like "Hello", "Hello beta kaise h aap", "bataiye aaj kya padha", "kaisi chal rahi h padhai" should be treated as FOLLOW-UPs that continue the educational conversation.
 
 A message is NOT a follow-up if:
-- It's a completely new topic
+- It's a completely new topic with no relation to previous conversation
 - It's self-contained and understandable without context
-- It's a greeting or general question
+- It's a simple greeting with NO previous conversation history
 
 Response format:
-- If follow-up: Return JSON {"is_follow_up": true, "enriched_message": "rewritten message with context"}
-- If not follow-up: Return JSON {"is_follow_up": false, "enriched_message": null}
+- If stop conversation: Return JSON {"is_follow_up": false, "enriched_message": null, "should_stop": true}
+- If follow-up: Return JSON {"is_follow_up": true, "enriched_message": "rewritten message with context", "should_stop": false}
+- If not follow-up: Return JSON {"is_follow_up": false, "enriched_message": null, "should_stop": false}
 
 Example:
 Previous: "User: What is Newton's first law? Bot: Newton's first law states..."
 Current: "Can you give an example?"
-Response: {"is_follow_up": true, "enriched_message": "Can you give an example of Newton's first law of motion?"}
+Response: {"is_follow_up": true, "enriched_message": "Can you give an example of Newton's first law of motion?", "should_stop": false}
 
 Example:
-Previous: "User: Explain photosynthesis Bot: Photosynthesis is..."
-Current: "What are the important topics in Physics for board exam?"
-Response: {"is_follow_up": false, "enriched_message": null}"""
+Previous: "User: Board exam help Bot: Here are physics notes..."
+Current: "Hello beta kaise h aap, bataiye aaj kya padha"
+Response: {"is_follow_up": true, "enriched_message": "Hello beta, continuing our board exam preparation conversation, what did you study today?", "should_stop": false}
+
+Example:
+Previous: "User: Physics help Bot: Here are important topics..."
+Current: "Hello"
+Response: {"is_follow_up": true, "enriched_message": "Hello, continuing our physics studies conversation", "should_stop": false}
+
+Example:
+No previous conversation
+Current: "Hello"
+Response: {"is_follow_up": false, "enriched_message": null, "should_stop": false}
+
+Example:
+Previous: "User: Physics help Bot: Here are important topics..."
+Current: "chup hojao mujhe baat nahi karni"
+Response: {"is_follow_up": false, "enriched_message": null, "should_stop": true}
+
+Example:
+Previous: "User: What is chemistry Bot: Chemistry is..."
+Current: "don't disturb me"
+Response: {"is_follow_up": false, "enriched_message": null, "should_stop": true}"""
 
             user_prompt = f"""Previous Conversation (last 24 hours):
 {context_string}
@@ -141,10 +176,12 @@ Is this a follow-up question? If yes, rewrite it with context. Respond in JSON f
                 result = json.loads(result_text)
                 is_follow_up = result.get("is_follow_up", False)
                 enriched_message = result.get("enriched_message")
+                should_stop = result.get("should_stop", False)
 
                 logger.info(
                     f"[FollowUpDetector] Detection result - "
                     f"is_follow_up: {is_follow_up}, "
+                    f"should_stop: {should_stop}, "
                     f"original: '{current_message}', "
                     f"enriched: '{enriched_message if enriched_message else 'N/A'}'"
                 )
@@ -154,7 +191,8 @@ Is this a follow-up question? If yes, rewrite it with context. Respond in JSON f
                     enriched_message=enriched_message if is_follow_up else None,
                     original_message=current_message,
                     context_used=context_messages if is_follow_up else [],
-                    confidence=None  # Can add confidence scoring later if needed
+                    confidence=None,  # Can add confidence scoring later if needed
+                    should_stop_conversation=should_stop
                 )
 
             except json.JSONDecodeError as e:

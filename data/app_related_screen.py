@@ -23,6 +23,29 @@ VECTOR_STORE_ID = os.getenv("VECTOR_STORE_ID", "vs_68b97d5ff1d48191adc2165ceaa4f
 WHATSAPP_NUMBER = os.getenv("WHATSAPP_NUMBER", "8305351495")
 
 
+def extract_question_id(question: str) -> dict:
+    """
+    Extract question ID from the question text.
+    
+    Example:
+        "question 2858:- FAQ 19: Teacher kaun padhayega kaise dekhein?"
+        → {"question_id": "2858", "clean_text": "FAQ 19: Teacher kaun padhayega kaise dekhein?"}
+    """
+    pattern = r'^question\s*(\d+)\s*[:\-]+\s*'
+    
+    match = re.match(pattern, question.strip(), flags=re.IGNORECASE)
+    
+    if match:
+        return {
+            "question_id": match.group(1),
+            "clean_text": question[match.end():].strip()
+        }
+    
+    return {
+        "question_id": None,
+        "clean_text": question.strip()
+    }
+
 class QueryProcessor:
     def __init__(self, api_key=None):
         """Initialize the query processor with OpenAI client"""
@@ -230,6 +253,7 @@ You are a precise semantic question matching assistant with these exact specific
     def search_questions_in_parquet(self, parquet_file_path, similar_questions, language='english'):
         """
         Search for similar questions in Parquet file and extract Q&A pairs with language-specific answers
+        Now searches by question_id if available
         """
         try:
             if not parquet_file_path:
@@ -258,6 +282,7 @@ You are a precise semantic question matching assistant with these exact specific
             question_col = 'question'
             english_answer_col = 'answer_english'
             hindi_answer_col = 'answer_hindi'
+            id_col = 'id'  # Add ID column - adjust if your column name is different
             
             # Validate columns exist
             missing_cols = []
@@ -271,6 +296,13 @@ You are a precise semantic question matching assistant with these exact specific
             if missing_cols:
                 logger.error(f"Missing required columns: {missing_cols}")
                 raise ValueError(f"Missing required columns in Parquet file: {missing_cols}")
+            
+            # Check if ID column exists
+            has_id_column = id_col in df.columns
+            if has_id_column:
+                logger.info(f"ID column '{id_col}' found - will search by ID")
+            else:
+                logger.info(f"ID column '{id_col}' not found - will search by question text")
             
             # Determine which answer column to use based on language
             if language and language.lower() == 'hindi':
@@ -287,17 +319,40 @@ You are a precise semantic question matching assistant with these exact specific
                     logger.warning(f"Question {i+1} is empty or whitespace only")
                     continue
                 
-                search_term = similar_q.strip()
-                logger.info(f"Question {i+1}: Searching for - '{search_term}'")
+                # Extract question ID from the similar question
+                extracted = extract_question_id(similar_q)
+                question_id = extracted["question_id"]
+                clean_text = extracted["clean_text"]
+                
+                logger.info(f"Question {i+1}: Raw - '{similar_q}'")
+                logger.info(f"Question {i+1}: Extracted ID - '{question_id}', Clean Text - '{clean_text}'")
                 
                 try:
-                    # Search for exact or partial matches
-                    # Search for exact or partial matches
-                    matches = df[df[question_col].str.lower() == search_term.lower()]
-
-                    # If no exact match found, try partial match as fallback
+                    matches = pd.DataFrame()  # Empty dataframe
+                    
+                    # PRIORITY 1: Search by ID if available
+                    if question_id and has_id_column:
+                        # Try numeric match first
+                        try:
+                            matches = df[df[id_col] == int(question_id)]
+                        except (ValueError, TypeError):
+                            # Try string match if numeric fails
+                            matches = df[df[id_col].astype(str) == question_id]
+                        
+                        if not matches.empty:
+                            logger.info(f"  ✓ FOUND BY ID: {question_id}")
+                    
+                    # PRIORITY 2: Fallback to text search if ID search fails
                     if matches.empty:
-                        matches = df[df[question_col].str.contains(search_term, case=False, na=False)]
+                        search_term = clean_text if clean_text else similar_q.strip()
+                        logger.info(f"  → Falling back to text search: '{search_term}'")
+                        
+                        # Exact match first
+                        matches = df[df[question_col].str.lower() == search_term.lower()]
+                        
+                        # Partial match as fallback
+                        if matches.empty:
+                            matches = df[df[question_col].str.contains(search_term, case=False, na=False)]
                     
                     if not matches.empty:
                         row = matches.iloc[0]

@@ -131,6 +131,13 @@ This includes:
 - **Asking for personal meeting or direct contact** (e.g., "Milna hai", "Phone par baat karni hai")
 - **Asking for customer care or official support contact numbers**
 
+**Fees/Pricing Queries (ANY fees-related question):**
+- **ANY question about fees, pricing, or cost of anything** - whether related to Arivihan or external things
+- **Questions about fees of other coaching/institutes** (e.g., "Allen ki fees kitni hai?", "Physics Wallah ka price kya hai?")
+- **Questions about exam fees** (e.g., "JEE ki fees kitni hai?", "Board exam fees kya hai?")
+- **Questions about college/university fees** (e.g., "IIT ki fees kitni hai?", "Engineering college fees")
+- **ANY fees/price/cost related query should be routed to app_related** to provide information about Arivihan's offerings
+
 **IMPORTANT: This category is for INFORMATIONAL QUERIES about app features, pricing, contact, or platform functionality – NOT for reporting problems with them.**
 
 **IMPORTANT: PYQ requests are NOT classified as app_related - they go to exam_related_info**
@@ -140,7 +147,7 @@ This includes:
 **IMPORTANT: ALL TEST ACCESS REQUESTS are classified as app_related (e.g., "test chahiye", "test kaha milege", "mock test dena hai")**
 
 **KEY INDICATOR:**
-Is the student asking HOW TO USE the app, WHAT IS AVAILABLE in the app/platform, anything related to PRICING, PAYMENT, PURCHASING, HOW TO JOIN, FINANCIAL ASSISTANCE (including scholarships), ANY CONTACT INFORMATION, **ANY LECTURE REQUESTS**, or **ANY TEST ACCESS REQUESTS** (wanting to get/take/find tests) **WITHOUT expressing dissatisfaction or reporting problems**?
+Is the student asking HOW TO USE the app, WHAT IS AVAILABLE in the app/platform, anything related to PRICING, PAYMENT, PURCHASING, HOW TO JOIN, FINANCIAL ASSISTANCE (including scholarships), ANY CONTACT INFORMATION, **ANY LECTURE REQUESTS**, **ANY TEST ACCESS REQUESTS** (wanting to get/take/find tests), or **ANY FEES/PRICING QUESTIONS (even about external coaching, exams, or colleges)** **WITHOUT expressing dissatisfaction or reporting problems**?
 
 ---
 
@@ -311,7 +318,7 @@ Return ONLY the category name:"""
         # If response doesn't match exactly, check for partial matches
         category_keywords = {
             'subject_related': ['subject', 'academic', 'topic', 'concept'],
-            'app_related': ['app', 'feature', 'batch', 'platform', 'navigation', 'subscription', 'pricing', 'payment', 'discount', 'scholarship'],
+            'app_related': ['app', 'feature', 'batch', 'platform', 'navigation', 'subscription', 'pricing', 'payment', 'discount', 'scholarship', 'fees', 'cost', 'price'],
             'complaint': ['complaint', 'problem', 'issue', 'frustration'],
             'guidance_based': ['guidance', 'study', 'planning', 'advice'],
             'conversation_based': ['conversation', 'casual', 'greeting'],

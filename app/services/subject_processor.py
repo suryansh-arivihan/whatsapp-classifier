@@ -10,8 +10,7 @@ from openai import OpenAI
 from app.core.logging_config import logger
 from app.core.config import settings
 
-
-def html_to_simple_text_with_personal_touch(html_content, student_name="beta", language="english"):
+def html_to_simple_text_with_personal_touch(html_content, student_name="beta", user_query="", language="auto"):
     """
     Convert HTML content to simple plain text with a personal, caring teacher tone.
     Adds introduction and closing with subtle Arivihan promotion.
@@ -19,11 +18,25 @@ def html_to_simple_text_with_personal_touch(html_content, student_name="beta", l
     Args:
         html_content (str): HTML content to convert
         student_name (str): Name to address the student (default: "beta")
-        language (str): Response language - "hinglish" or "hindi" (default: "hinglish")
+        user_query (str): Original user query to detect language (default: "")
+        language (str): Response language - "auto", "hinglish" or "hindi" (default: "auto")
 
     Returns:
         str: Plain text version with personal touch
     """
+
+
+    logger.info("🔄 Converting HTML to simple text with personal touch...")
+    logger.info(html_content)
+    # Auto-detect language if set to auto
+    if language.lower() == "auto":
+        # Check if user_query contains Devanagari characters
+        import re
+        devanagari_pattern = re.compile(r'[\u0900-\u097F]')
+        if devanagari_pattern.search(user_query):
+            language = "hindi"
+        else:
+            language = "hinglish"
 
     # Language-specific instructions
     if language.lower() == "hindi":
@@ -34,96 +47,71 @@ def html_to_simple_text_with_personal_touch(html_content, student_name="beta", l
 - Complete Hindi language response
 """
         opening_instruction = """
-*OPENING (warm and encouraging):*
-- Select opening according to your logic and sense - make it natural and contextual
-- Use caring, teacher-like tone in Hindi
-- Address student as "बेटा" or similar affectionate terms
-- Encourage the student for asking questions
-- Examples (choose or create similar):
-  * "बेटा, ये रहा आपके डाउट का जवाब!"
-  * "डाउट पूछना बहुत अच्छी बात है बेटा"
-  * "चलिए मैं आपको अच्छे से समझाता हूं"
-  * "बहुत बढ़िया सवाल पूछा आपने बेटा"
+*OPENING (5-10 words only):*
+- Very brief greeting in Hindi
+- Examples: "बेटा, ये रहा जवाब:" or "चलिए समझते हैं:"
 """
         closing_instruction = """
-*CLOSING (subtle call-to-action):*
-- Select closing according to your logic and sense - make it natural
-- Keep it helpful, not pushy
-- Mention Arivihan subtly
-- Examples (choose or create similar):
-  * "अगर आपको और कोई डाउट है तो पूछ सकते हैं बेटा"
-  * "या फिर आप महत्वपूर्ण प्रश्न और टॉपर्स के नोट्स के लिए अरिविहान पर जाएं"
-  * "हम हमेशा आपकी मदद के लिए तैयार हैं"
+*CLOSING (10-15 words only):*
+- Brief helpful closing
+- Example: "और सहायता के लिए अरिविहान देखें।"
 """
     else:  # hinglish
         lang_instruction = """
 *LANGUAGE: Hinglish - WhatsApp Message Style (Roman Script)*
-- Write Hindi words in ROMAN/ENGLISH script (e.g., "Force kya hai", "bahut aasan hai")
-- Natural conversational mix like texting/WhatsApp
-- Think: "Force kya h - iski definition bahut aasan h"
-- Use short forms: "h" for "hai", "kr" for "kar", "aap" for "आप"
-- Mix Hindi-English naturally like students chat
-- Keep it casual, friendly, and easy to read
+- Write Hindi words in ROMAN/ENGLISH script
+- Natural mix like WhatsApp chatting
+- Keep it casual and brief
 """
         opening_instruction = """
-*OPENING (warm and encouraging):*
-- Select opening according to your logic and sense - make it natural and contextual
-- Use caring, teacher-like tone in Hinglish
-- Address student as "beta" or similar affectionate terms
-- Encourage the student for asking questions
-- Examples (choose or create similar):
-  * "Beta, ye raha aapke doubt ka answer!"
-  * "Doubt puchna bahut acchi baat hai beta"
-  * "Chalo main aapko acche se samjhata hun"
-  * "Bahut badhiya question pucha aapne beta"
+*OPENING (5-10 words only):*
+- Very brief greeting in Hinglish
+- Examples: "Beta, ye raha answer:" or "Chalo samjhte hain:"
 """
         closing_instruction = """
-*CLOSING (subtle call-to-action):*
-- Select closing according to your logic and sense - make it natural
-- Keep it helpful, not pushy
-- Mention Arivihan subtly
-- Examples (choose or create similar):
-  * "Agar aapko aur koi doubt hai to puch sakte ho beta"
-  * "Ya fir important questions aur toppers ke notes ke liye Arivihan par jao"
-  * "Hum hamesha aapki help ke liye ready hain"
+*CLOSING (10-15 words only):*
+- Brief helpful closing
+- Example: "Aur help ke liye Arivihan dekhiye."
 """
 
-    prompt = f"""You are Ritesh Sir, a caring and experienced teacher who is CEO of Arivihan - an edtech platform helping 12th MP Board students prepare for board exams. You're answering a student's doubt on WhatsApp in a warm, encouraging way.
+    prompt = f"""You are Ritesh Sir from Arivihan. Give EXTREMELY BRIEF answer.
 
 {lang_instruction}
 
-Convert the following HTML answer to simple plain text with this structure:
+**STRICT WORD LIMIT: Maximum 100 words TOTAL (including greeting and closing)**
+
+Convert this HTML to simple text:
 
 {opening_instruction}
 
-*MAIN ANSWER:*
-- Convert ALL HTML tags to simple text
-- Remove ALL LaTeX, mathematical notation, and special symbols
-- Explain concepts in simple, clear language
-- Use conversational style like a teacher explaining to a student
-- Make complex topics easy to understand
-- Use examples where helpful
-- *Use *asterisks* for bold/emphasis on important points*
+*MAIN ANSWER (70-80 words MAX):*
+- Remove ALL HTML tags, LaTeX, special symbols
+- Give ONLY the core concept/answer
+- Use *asterisks* for emphasis
+- Be VERY concise - like a WhatsApp quick reply
+- Skip detailed explanations
+- Focus on the main point only
 
 {closing_instruction}
 
-*FORMATTING RULES:*
-- Use *single asterisks* around words/phrases for emphasis (e.g., *important*, *formula*)
-- Make key concepts, terms, and important points bold using asterisks
-- Keep formatting clean and readable
+*CRITICAL RULES:*
+- TOTAL response must be under 100 words
+- Count every word including greeting/closing
+- If answer is getting long, CUT details and keep only essentials
+- Think: "What's the shortest way to answer this?"
 
-HTML Content to Convert:
+HTML Content:
 {html_content}
 
-Now write the complete answer in a warm, teacher-student conversation style:"""
+Give the SHORTEST possible answer (under 100 words total):"""
 
     client = OpenAI(api_key=settings.openai_api_key)
 
     # Language-specific system message
     if language.lower() == "hindi":
-        system_content = "You are Ritesh Sir - a caring, experienced teacher from Arivihan who teaches MP Board 12th students. You explain concepts warmly in PURE HINDI (Devanagari script only) like talking to your own child. NO English words - complete Hindi response only. You're helpful, encouraging, and make students feel comfortable asking doubts."
+        system_content = "You are Ritesh Sir. Give EXTREMELY BRIEF answers in PURE HINDI (Devanagari). Maximum 100 words total. Be concise like WhatsApp messages."
     else:
-        system_content = "You are Ritesh Sir - a caring, experienced teacher from Arivihan who teaches MP Board 12th students. You explain concepts warmly in Hindi/Hinglish like talking to your own child. You're helpful, encouraging, and make students feel comfortable asking doubts."
+        system_content = "You are Ritesh Sir. Give EXTREMELY BRIEF answers in Hinglish. Maximum 100 words total. Be concise like WhatsApp messages."
 
     try:
         response = client.chat.completions.create(
@@ -139,7 +127,7 @@ Now write the complete answer in a warm, teacher-student conversation style:"""
                 }
             ],
             temperature=0.7,
-            max_tokens=2500
+            max_tokens=150  # Reduced from 2500 to enforce brevity
         )
 
         plain_text = response.choices[0].message.content.strip()
@@ -335,6 +323,7 @@ async def handle_subject_doubt(
             conceptual_start = time.time()
             conceptual_solution = await get_conceptual_solution(query, subject, language)
             conceptual_time = time.time() - conceptual_start
+            logger.info(conceptual_solution)
             logger.info(f"⏱️  Conceptual solution time: {conceptual_time:.2f}s")
 
             if conceptual_solution:
@@ -344,11 +333,15 @@ async def handle_subject_doubt(
                 logger.info("🔄 Converting to personalized message...")
                 conversion_start = time.time()
                 conceptual_result = conceptual_solution.get("result", "")
+                logger.info(conceptual_result)
 
                 if conceptual_result:
+                    logger.info("calling html to simple text with personal touch")
                     personalized_text = html_to_simple_text_with_personal_touch(
-                        conceptual_result, language
-                    )
+                                            html_content=conceptual_result,
+                                            user_query=query,  # Pass the query for auto-language detection
+                                            language="hindi"    # Let it auto-detect from query
+                                        )
                     conversion_time = time.time() - conversion_start
                     logger.info(f"⏱️  Text conversion time: {conversion_time:.2f}s")
 
@@ -375,9 +368,11 @@ async def handle_subject_doubt(
             conversion_start = time.time()
 
             if result:
-                personalized_text = html_to_simple_text_with_personal_touch(
-                    result, language
-                )
+                personalized_text = personalized_text = html_to_simple_text_with_personal_touch(
+                        html_content=conceptual_result,
+                        user_query=query,
+                        language="auto"  # Will auto-detect based on query
+                    )
                 conversion_time = time.time() - conversion_start
                 logger.info(f"⏱️  Text conversion time: {conversion_time:.2f}s")
 
@@ -411,8 +406,10 @@ async def handle_subject_doubt(
 
             if conceptual_result:
                 personalized_text = html_to_simple_text_with_personal_touch(
-                    conceptual_result, language
-                )
+                        html_content=conceptual_result,
+                        user_query=query,
+                        language="auto"
+                    )
                 conversion_time = time.time() - conversion_start
                 logger.info(f"⏱️  Text conversion time: {conversion_time:.2f}s")
 

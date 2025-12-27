@@ -71,6 +71,31 @@ class ClassificationPipeline:
                 logger.info(f"[Pipeline] Checking follow-up for phone: {phone_number}")
                 followup_result = await followup_detector.detect_and_enrich(message, phone_number)
 
+                # Check if user wants to stop conversation
+                if followup_result.should_stop_conversation:
+                    logger.info(f"[Pipeline] User requested to stop conversation, returning empty response")
+                    processing_time = (time.time() - start_time) * 1000
+                    return ClassificationResponse(
+                        classification="conversation_based",
+                        sub_classification="stop_conversation",
+                        subject=None,
+                        language="hindi",
+                        original_message=original_message,
+                        translated_message=None,
+                        confidence_score=1.0,
+                        response_data={
+                            "status": "success",
+                            "message": "",  # Empty response as requested
+                            "data": None,
+                            "metadata": {
+                                "is_follow_up": False,
+                                "original_message": original_message,
+                                "stop_conversation": True
+                            }
+                        },
+                        processing_time_ms=processing_time
+                    )
+
                 if followup_result.is_follow_up and followup_result.enriched_message:
                     logger.info(
                         f"[Pipeline] Follow-up detected! "

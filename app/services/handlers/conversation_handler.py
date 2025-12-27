@@ -7,6 +7,7 @@ from typing import Dict, Any
 from app.services.handlers.base_handler import BaseResponseHandler
 from app.core.logging_config import logger
 from app.services.conversation_processor import conversation_main
+from app.services.history_service import history_service
 
 
 class ConversationHandler(BaseResponseHandler):
@@ -49,8 +50,23 @@ class ConversationHandler(BaseResponseHandler):
             # Get classification type
             initial_classification = classification_data.get("main_classification", "conversation")
 
+            # Check if this is the user's first message by checking conversation history
+            first_message = True  # Default to True if we can't determine
+            phone_number = classification_data.get("phone_number")
+
+            if phone_number:
+                try:
+                    history = await history_service.get_conversation_history(phone_number, limit=1)
+                    # If user has any previous messages, it's not their first message
+                    first_message = history.total_count == 0
+                    logger.info(f"[ConversationHandler] User {phone_number} has {history.total_count} previous messages, first_message={first_message}")
+                except Exception as e:
+                    logger.warning(f"[ConversationHandler] Could not check conversation history: {e}, assuming first_message=True")
+            else:
+                logger.info(f"[ConversationHandler] No phone_number provided, assuming first_message=True")
+
             # Process using local conversation processor
-            processor_response = conversation_main(json_data, initial_classification)
+            processor_response = conversation_main(json_data, initial_classification, first_message)
 
             # Wrap the processor response
             response = {
